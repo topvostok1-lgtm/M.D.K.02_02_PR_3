@@ -265,6 +265,7 @@ namespace Snake
                 else
                     Leaders = new List<Leaders>();
             }
+
             else
                 Leaders = new List<Leaders>();
         }
