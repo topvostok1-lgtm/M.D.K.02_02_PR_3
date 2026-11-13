@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Common;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 
 namespace Snake
 {
@@ -51,9 +52,7 @@ namespace Snake
                 {
                     var gameData = viewModelGames.Find(x => x.IdSnake == User.IdSnake);
                     byte[] bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(gameData));
-
                     sender.Send(bytes, bytes.Length, endPoint);
-
 
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine($"Отправил данные пользователю: {User.IPAddress}:{User.Port}");
@@ -86,7 +85,7 @@ namespace Snake
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Получил команду: " + returnData.ToString());
 
-                    if (returnData.ToString().Contains("/start"))
+                    if (returnData.ToString().Contains("start"))
                     {
                         string[] dataMessage = returnData.ToString().Split('|');
                         ViewModelUserSettings viewModelUserSettings = JsonConvert.DeserializeObject<ViewModelUserSettings>(dataMessage[1]);
@@ -95,10 +94,8 @@ namespace Snake
                         Console.WriteLine($"Подключился пользователь: {viewModelUserSettings.IPAddress}:{viewModelUserSettings.Port}");
 
                         remoteIPAddress.Add(viewModelUserSettings);
-
                         int newSnakeId = AddSnake();
                         viewModelUserSettings.IdSnake = newSnakeId;
-
                         viewModelGames[newSnakeId].IdSnake = newSnakeId;
                     }
                     else
@@ -112,13 +109,10 @@ namespace Snake
                         {
                             if (dataMessage[0] == "Up" && viewModelGames[IdPlayer].SnakesPlayers.direction != Snakes.Direction.Down)
                                 viewModelGames[IdPlayer].SnakesPlayers.direction = Snakes.Direction.Up;
-
                             else if (dataMessage[0] == "Down" && viewModelGames[IdPlayer].SnakesPlayers.direction != Snakes.Direction.Up)
                                 viewModelGames[IdPlayer].SnakesPlayers.direction = Snakes.Direction.Down;
-
                             else if (dataMessage[0] == "Left" && viewModelGames[IdPlayer].SnakesPlayers.direction != Snakes.Direction.Right)
                                 viewModelGames[IdPlayer].SnakesPlayers.direction = Snakes.Direction.Left;
-
                             else if (dataMessage[0] == "Right" && viewModelGames[IdPlayer].SnakesPlayers.direction != Snakes.Direction.Left)
                                 viewModelGames[IdPlayer].SnakesPlayers.direction = Snakes.Direction.Right;
                         }
@@ -135,7 +129,6 @@ namespace Snake
         public static int AddSnake()
         {
             ViewModelGames viewModelGamesPlayer = new ViewModelGames();
-
             viewModelGamesPlayer.SnakesPlayers = new Snakes()
             {
                 Points = new List<Snakes.Point>() {
@@ -145,11 +138,8 @@ namespace Snake
                 },
                 direction = Snakes.Direction.Start
             };
-
             viewModelGamesPlayer.Points = new Snakes.Point(new Random().Next(10, 783), new Random().Next(10, 410));
-
             viewModelGames.Add(viewModelGamesPlayer);
-
             return viewModelGames.FindIndex(x => x == viewModelGamesPlayer);
         }
 
@@ -158,7 +148,6 @@ namespace Snake
             while (true)
             {
                 Thread.Sleep(100);
-
                 List<ViewModelGames> RemoteSnakes = viewModelGames.FindAll(x => x.SnakesPlayers.GameOver);
 
                 if (RemoteSnakes.Count > 0)
@@ -167,7 +156,6 @@ namespace Snake
                     {
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         Console.WriteLine($"Отключили пользователя: {remoteIPAddress.Find(x => x.IdSnake == DeadSnake.IdSnake).IPAddress}");
-
                         remoteIPAddress.RemoveAll(x => x.IdSnake == DeadSnake.IdSnake);
                     }
                     viewModelGames.RemoveAll(x => x.SnakesPlayers.GameOver);
@@ -223,7 +211,6 @@ namespace Snake
                         if (Snake.Points[0].Y > currentGame.Points.Y - 15 && Snake.Points[0].Y < currentGame.Points.Y + 15)
                         {
                             currentGame.Points = new Snakes.Point(new Random().Next(10, 783), new Random().Next(10, 410));
-
                             Snake.Points.Add(new Snakes.Point()
                             {
                                 X = Snake.Points[Snake.Points.Count - 1].X,
@@ -231,7 +218,6 @@ namespace Snake
                             });
 
                             LoadLeaders();
-
                             Leaders.Add(new Leaders()
                             {
                                 Name = User.Name,
@@ -254,14 +240,13 @@ namespace Snake
                         SaveLeaders();
                     }
                 }
-
                 Send();
             }
         }
+
         public static void SaveLeaders()
         {
             string json = JsonConvert.SerializeObject(Leaders);
-
             StreamWriter SW = new StreamWriter("./leaders.txt");
             SW.WriteLine(json);
             SW.Close();
