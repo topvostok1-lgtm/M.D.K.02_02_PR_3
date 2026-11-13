@@ -54,6 +54,7 @@ namespace Snake
 
                     sender.Send(bytes, bytes.Length, endPoint);
 
+
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine($"Отправил данные пользователю: {User.IPAddress}:{User.Port}");
                 }
